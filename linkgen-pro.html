@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LinkGen Pro — Webpage Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0c;
+  --surface: #111115;
+  --surface2: #18181f;
+  --surface3: #1f1f28;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.18);
+  --text: #eeeef2;
+  --muted: #666680;
+  --accent: #c8ff57;
+  --accent2: #57c8ff;
+  --accent3: #ff57a8;
+  --accent-dim: rgba(200,255,87,0.1);
+  --accent-dim2: rgba(200,255,87,0.05);
+  --danger: #ff4f4f;
+  --success: #4fff9a;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Bebas Neue', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.07) 2px,
+    rgba(0,0,0,0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ─── NOISE TEXTURE ─── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── SIDEBAR LAYOUT ─── */
+.app {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+.logo-title {
+  font-family: var(--display);
+  font-size: 42px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--text);
+}
+.logo-title span { color: var(--accent); }
+
+.logo-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-family: var(--mono);
+}
+
+/* ─── NAV TABS ─── */
+.nav-tabs {
+  display: flex;
+  padding: 12px 16px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-tab {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.nav-tab:hover { border-color: var(--border-hover); color: var(--text); }
+.nav-tab.active {
+  background: var(--accent-dim);
+  border-color: rgba(200,255,87,0.4);
+  color: var(--accent);
+}
+
+/* ─── PANEL CONTENT ─── */
+.panel { display: none; flex-direction: column; flex: 1; }
+.panel.active { display: flex; }
+
+.panel-scroll { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* ─── SECTION CARD ─── */
+.card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-title .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+/* ─── INPUTS ─── */
+label {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+input[type=text], input[type=url], input[type=number], input[type=color], select, textarea {
+  width: 100%;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.5;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(200,255,87,0.4);
+  box-shadow: 0 0 0 3px rgba(200,255,87,0.06);
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666680' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+select option { background: var(--surface2); }
+textarea { resize: vertical; min-height: 70px; }
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.input-group { display: flex; flex-direction: column; }
+
+/* ─── COLOR INPUT ─── */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+.color-swatch input[type=color] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+.color-swatch-preview {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  pointer-events: none;
+}
+.color-text { flex: 1; }
+
+/* ─── VARIABLE PILLS ─── */
+.var-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 24px;
+}
+.var-pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(200,255,87,0.2);
+  border-radius: 20px;
+  padding: 2px 9px;
+  animation: popIn 0.2s ease;
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ─── FIELD ROWS ─── */
+.field-list { display: flex; flex-direction: column; gap: 8px; }
+.field-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn {
+  from { transform: translateY(-5px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.field-var-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--accent-dim2);
+  border: 1px solid rgba(200,255,87,0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-width: 80px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.field-item input { flex: 1; }
+
+/* ─── TOGGLE ─── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.toggle-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.toggle {
+  position: relative;
+  width: 38px; height: 22px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.toggle input:checked + .toggle-track {
+  background: var(--accent-dim);
+  border-color: rgba(200,255,87,0.4);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(16px);
+  background: var(--accent);
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-accent {
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+}
+.btn-accent:hover {
+  background: #d6ff7a;
+  box-shadow: 0 0 20px rgba(200,255,87,0.3);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+.btn-danger {
+  background: transparent;
+  border-color: rgba(255,79,79,0.3);
+  color: var(--danger);
+}
+.btn-danger:hover { background: rgba(255,79,79,0.1); }
+.btn-blue {
+  background: rgba(87,200,255,0.12);
+  border-color: rgba(87,200,255,0.3);
+  color: var(--accent2);
+}
+.btn-blue:hover { background: rgba(87,200,255,0.2); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 7px 12px; font-size: 10px; }
+
+/* ─── SAVED TEMPLATES ─── */
+.saved-item {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.saved-item:hover { border-color: var(--border-hover); }
+.saved-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.saved-tpl { font-family: var(--mono); font-size: 10px; color: var(--muted); word-break: break-all; }
+.saved-del { font-size: 14px; color: var(--muted); cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
+.saved-del:hover { color: var(--danger); }
+
+/* ─── HISTORY ─── */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 10px;
+  word-break: break-all;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.history-item:hover { border-color: var(--border-hover); }
+.history-copy { flex-shrink: 0; color: var(--muted); font-size: 14px; cursor: pointer; }
+.history-copy:hover { color: var(--accent); }
+
+/* ─── MAIN AREA ─── */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(200,255,87,0.2);
+  flex-shrink: 0;
+}
+
+.preview-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ─── PREVIEW AREA ─── */
+.preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+  gap: 20px;
+}
+
+/* ─── LIVE PREVIEW ─── */
+.live-preview-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.preview-browser-bar {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.browser-dots { display: flex; gap: 5px; }
+.browser-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.browser-dot:nth-child(1) { background: #ff5f57; }
+.browser-dot:nth-child(2) { background: #ffbd2e; }
+.browser-dot:nth-child(3) { background: #28ca41; }
+
+.browser-url {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+}
+.browser-url .filled { color: var(--accent); }
+.browser-url .unfilled { color: var(--danger); }
+
+.preview-iframe-wrap {
+  width: 100%;
+  background: #fff;
+  min-height: 300px;
+  position: relative;
+}
+
+#previewFrame {
+  width: 100%;
+  height: 340px;
+  border: none;
+  display: block;
+}
+
+/* ─── OUTPUT CARD ─── */
+.output-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.output-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.output-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  flex: 1;
+}
+
+.output-link {
+  background: var(--surface2);
+  padding: 14px 18px;
+  font-family: var(--mono);
+  font-size: 13px;
+  word-break: break-all;
+  color: var(--muted);
+  min-height: 50px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+.output-link:hover { background: var(--surface3); }
+.output-link.has-value { color: var(--text); }
+.output-link .hl { color: var(--accent); }
+.output-link .unf { color: var(--danger); }
+.copy-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(200,255,87,0.12);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.output-link:hover .copy-overlay { opacity: 1; }
+
+.output-actions {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── WEBPAGE BUILDER PANEL ─── */
+.builder-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ─── SECTIONS EDITOR ─── */
+.sections-list { display: flex; flex-direction: column; gap: 6px; }
+.section-item {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+  transition: border-color 0.2s;
+}
+.section-item:hover { border-color: var(--border-hover); }
+.section-drag { color: var(--muted); font-size: 12px; cursor: grab; }
+.section-name { flex: 1; font-size: 12px; }
+.section-toggle { font-size: 12px; color: var(--muted); cursor: pointer; }
+.section-toggle.on { color: var(--accent); }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  transform: translateY(10px);
+  transition: transform 0.2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal h3 { font-size: 16px; margin-bottom: 16px; }
+.modal input { margin-bottom: 14px; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns button { flex: 1; }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--surface2);
+  border: 1px solid var(--border-hover);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.accent { border-color: rgba(200,255,87,0.4); color: var(--accent); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── EMPTY STATE ─── */
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; }
+  .preview-area { padding: 16px; }
+  .topbar { padding: 12px 16px; }
+  .builder-grid { grid-template-columns: 1fr; }
+  #previewFrame { height: 220px; }
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 10px; }
+
+/* ─── RANGE SLIDER ─── */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface3);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(200,255,87,0.15);
+}
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.range-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ─── CODE BLOCK ─── */
+.code-preview {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  overflow-x: auto;
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre;
+  line-height: 1.6;
+}
+
+.tab-btn-group {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 12px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: var(--accent-dim); border-color: rgba(200,255,87,0.3); color: var(--accent); }
+
+/* Sub-tab panels */
+.sub-panel { display: none; }
+.sub-panel.active { display: flex; flex-direction: column; gap: 10px; }
+
+/* Glow effect for accent elements */
+.glow { text-shadow: 0 0 20px rgba(200,255,87,0.4); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar">
+
+    <div class="sidebar-logo">
+      <div class="logo-tag">// Webpage Builder</div>
+      <div class="logo-title">Link<span>Gen</span></div>
+      <div class="logo-sub">PRO v2.0 — Full Visual Builder</div>
+    </div>
+
+    <!-- NAV TABS -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-panel="template">URL</button>
+      <button class="nav-tab" data-panel="design">Design</button>
+      <button class="nav-tab" data-panel="content">Content</button>
+      <button class="nav-tab" data-panel="saved">Saved</button>
+    </nav>
+
+    <!-- ── PANEL: URL TEMPLATE ── -->
+    <div class="panel active" id="panel-template">
+      <div class="panel-scroll">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> URL Template</div>
+            <button class="btn btn-ghost btn-sm" id="clearTplBtn">Clear</button>
+          </div>
+          <div class="card-body">
+            <textarea id="templateInput" rows="3" placeholder="https://example.com/{id}/index.html&#10;&#10;Use {variable} for dynamic parts"></textarea>
+            <div class="hint" style="font-family:var(--mono);font-size:11px;color:var(--muted);">
+              Wrap variables with <code style="color:var(--accent);background:var(--accent-dim2);padding:1px 5px;border-radius:4px;">{curly braces}</code>
+            </div>
+            <div class="var-pills" id="varPills"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> Fill Variables</div>
+          </div>
+          <div class="card-body">
+            <div class="field-list" id="fieldList">
+              <div class="empty">No variables detected yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> Page Title</div>
+          </div>
+          <div class="card-body">
+            <input type="text" id="pageTitleInput" placeholder="My Webpage" />
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> Save Template</div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="saveName" placeholder="Template name…" style="flex:1;" />
+              <button class="btn btn-ghost btn-sm" id="saveTplBtn">Save</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PANEL: DESIGN ── -->
+    <div class="panel" id="panel-design">
+      <div class="tab-btn-group">
+        <button class="tab-btn active" data-sub="colors">Colors</button>
+        <button class="tab-btn" data-sub="typo">Type</button>
+        <button class="tab-btn" data-sub="layout">Layout</button>
+        <button class="tab-btn" data-sub="fx">FX</button>
+      </div>
+      <div class="panel-scroll" style="padding-top:0;">
+
+        <!-- Colors sub-panel -->
+        <div class="sub-panel active" id="sub-colors">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="dot"></span> Color Scheme</div></div>
+            <div class="card-body">
+              <div class="input-group">
+                <label>Preset</label>
+                <select id="colorPreset">
+                  <option value="custom">Custom</option>
+                  <option value="dark-neon">Dark Neon</option>
+                  <option value="midnight">Midnight Blue</option>
+                  <option value="light">Clean Light</option>
+                  <option value="warm">Warm Cream</option>
+                  <option value="crimson">Crimson Dark</option>
+                  <option value="forest">Forest Green</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Background</label>
+                <div class="color-row">
+                  <div class="color-swatch">
+                    <div class="color-swatch-preview" id="bgPreview"></div>
+                    <input type="color" id="bgColor" value="#0a0a0c" />
+                  </div>
+                  <input type="text" id="bgColorText" class="color-text" value="#0a0a0c" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Accent Color</label>
+                <div class="color-row">
+                  <div class="color-swatch">
+                    <div class="color-swatch-preview" id="accentPreview"></div>
+                    <input type="color" id="accentColor" value="#c8ff57" />
+                  </div>
+                  <input type="text" id="accentColorText" class="color-text" value="#c8ff57" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Text Color</label>
+                <div class="color-row">
+                  <div class="color-swatch">
+                    <div class="color-swatch-preview" id="textPreview"></div>
+                    <input type="color" id="textColor" value="#f0f0f0" />
+                  </div>
+                  <input type="text" id="textColorText" class="color-text" value="#f0f0f0" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Card / Surface</label>
+                <div class="color-row">
+                  <div class="color-swatch">
+                    <div class="color-swatch-preview" id="surfPreview"></div>
+                    <input type="color" id="surfColor" value="#111115" />
+                  </div>
+                  <input type="text" id="surfColorText" class="color-text" value="#111115" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Button Text</label>
+                <div class="color-row">
+                  <div class="color-swatch">
+                    <div class="color-swatch-preview" id="btnTextPreview"></div>
+                    <input type="color" id="btnTextColor" value="#000000" />
+                  </div>
+                  <input type="text" id="btnTextColorText" class="color-text" value="#000000" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typography sub-panel -->
+        <div class="sub-panel" id="sub-typo">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="dot"></span> Typography</div></div>
+            <div class="card-body">
+              <div class="input-group">
+                <label>Title Font</label>
+                <select id="titleFont">
+                  <option value="'Bebas Neue', sans-serif">Bebas Neue (Display)</option>
+                  <option value="'Space Mono', monospace">Space Mono</option>
+                  <option value="'DM Sans', sans-serif" selected>DM Sans</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Impact, sans-serif">Impact</option>
+                  <option value="'Arial Black', sans-serif">Arial Black</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Body Font</label>
+                <select id="bodyFont">
+                  <option value="'DM Sans', sans-serif" selected>DM Sans</option>
+                  <option value="'Space Mono', monospace">Space Mono</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Title Size</label>
+                <div class="range-row">
+                  <input type="range" id="titleSize" min="24" max="96" value="52" style="flex:1;" />
+                  <span class="range-val" id="titleSizeVal">52px</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Body Size</label>
+                <div class="range-row">
+                  <input type="range" id="bodySize" min="12" max="24" value="16" style="flex:1;" />
+                  <span class="range-val" id="bodySizeVal">16px</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Letter Spacing</label>
+                <div class="range-row">
+                  <input type="range" id="letterSpacing" min="0" max="20" value="2" style="flex:1;" />
+                  <span class="range-val" id="letterSpacingVal">0.02em</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layout sub-panel -->
+        <div class="sub-panel" id="sub-layout">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="dot"></span> Layout</div></div>
+            <div class="card-body">
+              <div class="input-group">
+                <label>Card Style</label>
+                <select id="cardStyle">
+                  <option value="modern">Modern Rounded</option>
+                  <option value="sharp">Sharp Edges</option>
+                  <option value="pill">Pill Inputs</option>
+                  <option value="brutal">Brutal Borders</option>
+                  <option value="glass">Glassmorphism</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Layout Width</label>
+                <select id="layoutWidth">
+                  <option value="480px">Narrow (480px)</option>
+                  <option value="640px" selected>Normal (640px)</option>
+                  <option value="800px">Wide (800px)</option>
+                  <option value="100%">Full Width</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Padding</label>
+                <div class="range-row">
+                  <input type="range" id="pagePad" min="16" max="80" value="40" style="flex:1;" />
+                  <span class="range-val" id="pagePadVal">40px</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Border Radius</label>
+                <div class="range-row">
+                  <input type="range" id="borderRadius" min="0" max="30" value="14" style="flex:1;" />
+                  <span class="range-val" id="borderRadiusVal">14px</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Input Style</label>
+                <select id="inputStyle">
+                  <option value="filled">Filled</option>
+                  <option value="outline">Outline Only</option>
+                  <option value="underline">Underline</option>
+                  <option value="glow">Glow Focus</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Button Shape</label>
+                <select id="btnShape">
+                  <option value="rounded">Rounded</option>
+                  <option value="pill">Pill</option>
+                  <option value="sharp">Sharp</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FX sub-panel -->
+        <div class="sub-panel" id="sub-fx">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><span class="dot"></span> Visual Effects</div></div>
+            <div class="card-body">
+              <div class="toggle-row">
+                <span class="toggle-label">Animated Background</span>
+                <label class="toggle"><input type="checkbox" id="fxAnimBg" /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Scanlines</span>
+                <label class="toggle"><input type="checkbox" id="fxScanlines" /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Glow Inputs</span>
+                <label class="toggle"><input type="checkbox" id="fxGlowInputs" checked /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Floating Labels</span>
+                <label class="toggle"><input type="checkbox" id="fxFloatLabels" /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Grid Decoration</span>
+                <label class="toggle"><input type="checkbox" id="fxGrid" checked /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Particle Effect</span>
+                <label class="toggle"><input type="checkbox" id="fxParticles" /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Fade-in Animation</span>
+                <label class="toggle"><input type="checkbox" id="fxFadeIn" checked /><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Confetti on Generate</span>
+                <label class="toggle"><input type="checkbox" id="fxConfetti" /><span class="toggle-track"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PANEL: CONTENT ── -->
+    <div class="panel" id="panel-content">
+      <div class="panel-scroll">
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="dot"></span> Page Header</div></div>
+          <div class="card-body">
+            <div class="input-group"><label>Brand / App Name</label><input type="text" id="brandName" placeholder="LinkGen Pro" value="LinkGen Pro" /></div>
+            <div class="input-group"><label>Tagline</label><input type="text" id="tagline" placeholder="Generate links instantly" value="Generate links instantly" /></div>
+            <div class="input-group"><label>Show Logo Icon</label>
+              <select id="logoIcon">
+                <option value="⚡">⚡ Lightning</option>
+                <option value="🔗">🔗 Link</option>
+                <option value="🚀">🚀 Rocket</option>
+                <option value="✦">✦ Star</option>
+                <option value="◈">◈ Diamond</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="dot"></span> Generate Button</div></div>
+          <div class="card-body">
+            <div class="input-group"><label>Button Label</label><input type="text" id="btnLabel" placeholder="Generate Link" value="Generate Link" /></div>
+            <div class="input-group"><label>Button Size</label>
+              <select id="btnSize">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+                <option value="xl">XL Full Width</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="dot"></span> Extra Sections</div></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <span class="toggle-label">Show QR Code</span>
+              <label class="toggle"><input type="checkbox" id="showQR" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Copy to Clipboard Btn</span>
+              <label class="toggle"><input type="checkbox" id="showCopy" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Open in New Tab Btn</span>
+              <label class="toggle"><input type="checkbox" id="showOpen" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Link History</span>
+              <label class="toggle"><input type="checkbox" id="showHistory" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">URL Validation</span>
+              <label class="toggle"><input type="checkbox" id="showValidation" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Character Counter</span>
+              <label class="toggle"><input type="checkbox" id="showCharCount" /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Dark/Light Toggle</span>
+              <label class="toggle"><input type="checkbox" id="showThemeToggle" checked /><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Footer Credits</span>
+              <label class="toggle"><input type="checkbox" id="showFooter" /><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="dot"></span> Custom Footer</div></div>
+          <div class="card-body">
+            <div class="input-group"><label>Footer Text</label><input type="text" id="footerText" placeholder="Made with LinkGen Pro" /></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PANEL: SAVED ── -->
+    <div class="panel" id="panel-saved">
+      <div class="panel-scroll">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> Saved Templates</div>
+            <button class="btn btn-ghost btn-sm" id="clearAllSavedBtn">Clear All</button>
+          </div>
+          <div class="card-body" id="savedList">
+            <div class="empty">No saved templates.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span> History</div>
+            <button class="btn btn-ghost btn-sm" id="clearHistBtn">Clear</button>
+          </div>
+          <div class="card-body" id="historyList">
+            <div class="empty">No link history.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════ MAIN AREA ══════════════════ -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="mode-badge">Builder Mode</div>
+        <div class="preview-label" id="previewLabel">Enter a URL template to get started →</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" id="refreshPreviewBtn">↺ Refresh</button>
+        <button class="btn btn-blue btn-sm" id="downloadHtmlBtn">⬇ Download HTML</button>
+        <button class="btn btn-accent btn-sm" id="generateLinkBtn">Generate Link</button>
+      </div>
+    </div>
+
+    <div class="preview-area">
+
+      <!-- Live URL Preview -->
+      <div class="live-preview-wrap">
+        <div class="preview-browser-bar">
+          <div class="browser-dots">
+            <div class="browser-dot"></div>
+            <div class="browser-dot"></div>
+            <div class="browser-dot"></div>
+          </div>
+          <div class="browser-url" id="browserUrl">about:blank</div>
+        </div>
+        <div class="preview-iframe-wrap">
+          <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin" title="Live Preview"></iframe>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="output-card">
+        <div class="output-header">
+          <div class="output-title">Generated Link</div>
+          <button class="btn btn-ghost btn-sm" id="copyLinkBtn">Copy</button>
+        </div>
+        <div class="output-link" id="outputLink">
+          <span style="color:var(--muted);font-size:12px;">Click Generate Link to build your URL.</span>
+          <div class="copy-overlay">Click to copy</div>
+        </div>
+        <div class="output-actions">
+          <button class="btn btn-accent btn-sm" id="generateLinkBtn2">⚡ Generate</button>
+          <button class="btn btn-ghost btn-sm" id="openLinkBtn" style="display:none;">↗ Open</button>
+          <button class="btn btn-ghost btn-sm" id="qrBtn" style="display:none;">QR Code</button>
+          <button class="btn btn-blue btn-sm" id="downloadHtmlBtn2">⬇ Download Page</button>
+        </div>
+      </div>
+
+      <!-- QR Code display -->
+      <div id="qrSection" style="display:none;">
+        <div class="output-card">
+          <div class="output-header">
+            <div class="output-title">QR Code</div>
+            <button class="btn btn-ghost btn-sm" id="closeQrBtn">✕ Close</button>
+          </div>
+          <div style="padding:20px;text-align:center;">
+            <canvas id="qrCanvas" width="200" height="200" style="border-radius:8px;background:#fff;padding:10px;"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let currentVars = [];
+let fieldValues = {};
+let savedTemplates = JSON.parse(localStorage.getItem('lgp_templates') || '[]');
+let linkHistory = JSON.parse(localStorage.getItem('lgp_history') || '[]');
+let generatedLink = '';
+let previewDebounce;
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied!', 'accent')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Copied!', 'accent');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  NAV TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+// Sub-tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const parent = btn.closest('.panel');
+    parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    parent.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sub-' + btn.dataset.sub).classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════════
+//  TEMPLATE & VARIABLES
+// ══════════════════════════════════════════════
+const templateInput = document.getElementById('templateInput');
+const varPills = document.getElementById('varPills');
+const fieldList = document.getElementById('fieldList');
+
+function extractVars(tpl) {
+  return [...new Set([...tpl.matchAll(/\{([^}]+)\}/g)].map(m => m[1]))];
+}
+
+function renderVarPills(vars) {
+  varPills.innerHTML = '';
+  vars.forEach(v => {
+    const p = document.createElement('div');
+    p.className = 'var-pill';
+    p.textContent = '{' + v + '}';
+    varPills.appendChild(p);
+  });
+}
+
+function renderFields(vars) {
+  fieldList.innerHTML = '';
+  if (vars.length === 0) {
+    fieldList.innerHTML = '<div class="empty">No variables detected yet.</div>';
+    return;
+  }
+  vars.forEach(v => {
+    const row = document.createElement('div');
+    row.className = 'field-item';
+    row.innerHTML = `<div class="field-var-tag">{${esc(v)}}</div>
+      <input class="field-input" type="text" data-var="${esc(v)}" placeholder="${esc(v)}…" value="${esc(fieldValues[v] || '')}" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 12px;outline:none;flex:1;" />`;
+    row.querySelector('input').addEventListener('input', e => {
+      fieldValues[v] = e.target.value;
+      updateBrowserBar();
+      scheduleLivePreview();
+    });
+    fieldList.appendChild(row);
+  });
+}
+
+function buildLink() {
+  let t = templateInput.value.trim();
+  if (!t) return '';
+  currentVars.forEach(v => {
+    t = t.split('{' + v + '}').join(fieldValues[v] || '{' + v + '}');
+  });
+  return t;
+}
+
+function updateBrowserBar() {
+  const t = templateInput.value.trim();
+  const url = document.getElementById('browserUrl');
+  const label = document.getElementById('previewLabel');
+  if (!t) { url.textContent = 'about:blank'; label.textContent = 'Enter a URL template to get started →'; return; }
+  let html = esc(t);
+  currentVars.forEach(v => {
+    const val = fieldValues[v];
+    if (val) html = html.split('{' + esc(v) + '}').join(`<span class="filled">${esc(val)}</span>`);
+    else html = html.split('{' + esc(v) + '}').join(`<span class="unfilled">{${esc(v)}}</span>`);
+  });
+  url.innerHTML = html;
+  label.textContent = buildLink() || t;
+}
+
+templateInput.addEventListener('input', () => {
+  const vars = extractVars(templateInput.value);
+  currentVars = vars;
+  fieldValues = Object.fromEntries(vars.map(v => [v, fieldValues[v] || '']));
+  renderVarPills(vars);
+  renderFields(vars);
+  updateBrowserBar();
+  scheduleLivePreview();
+});
+
+// ══════════════════════════════════════════════
+//  LIVE PREVIEW
+// ══════════════════════════════════════════════
+function scheduleLivePreview() {
+  clearTimeout(previewDebounce);
+  previewDebounce = setTimeout(updateLivePreview, 400);
+}
+
+function updateLivePreview() {
+  const frame = document.getElementById('previewFrame');
+  const html = buildOutputHtml(true);
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  frame.src = url;
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+document.getElementById('refreshPreviewBtn').addEventListener('click', updateLivePreview);
+
+// ══════════════════════════════════════════════
+//  COLOR CONTROLS
+// ══════════════════════════════════════════════
+function syncColor(inputId, textId, previewId) {
+  const input = document.getElementById(inputId);
+  const text = document.getElementById(textId);
+  const prev = document.getElementById(previewId);
+  if (!input) return;
+  const update = (val) => {
+    prev.style.background = val;
+    if (text) text.value = val;
+  };
+  update(input.value);
+  input.addEventListener('input', () => update(input.value));
+  if (text) text.addEventListener('input', () => { input.value = text.value; update(text.value); scheduleLivePreview(); });
+  input.addEventListener('change', scheduleLivePreview);
+}
+
+syncColor('bgColor','bgColorText','bgPreview');
+syncColor('accentColor','accentColorText','accentPreview');
+syncColor('textColor','textColorText','textPreview');
+syncColor('surfColor','surfColorText','surfPreview');
+syncColor('btnTextColor','btnTextColorText','btnTextPreview');
+
+// Color presets
+const presets = {
+  'dark-neon': { bg:'#0a0a0c', accent:'#c8ff57', text:'#eeeef2', surf:'#111115', btnText:'#000000' },
+  'midnight': { bg:'#080c1a', accent:'#5771ff', text:'#e0e8ff', surf:'#0e1428', btnText:'#ffffff' },
+  'light': { bg:'#f8f8f8', accent:'#2563eb', text:'#111111', surf:'#ffffff', btnText:'#ffffff' },
+  'warm': { bg:'#f5f0e8', accent:'#e05a00', text:'#2c1a0e', surf:'#fff9f0', btnText:'#ffffff' },
+  'crimson': { bg:'#0f0508', accent:'#ff4f6a', text:'#f5e0e4', surf:'#1a0810', btnText:'#ffffff' },
+  'forest': { bg:'#060f08', accent:'#57ff8c', text:'#d0f0d8', surf:'#0c1a0e', btnText:'#000000' },
+  'cyberpunk': { bg:'#0d0014', accent:'#ff0099', text:'#f0e0ff', surf:'#15001e', btnText:'#ffffff' },
+};
+document.getElementById('colorPreset').addEventListener('change', function() {
+  const p = presets[this.value];
+  if (!p) return;
+  ['bg','accent','text','surf','btnText'].forEach(k => {
+    const col = p[k];
+    const input = document.getElementById(k+'Color');
+    const text = document.getElementById(k+'ColorText');
+    const prev = document.getElementById(k+'Preview');
+    if (input) { input.value = col; if (text) text.value = col; if (prev) prev.style.background = col; }
+  });
+  scheduleLivePreview();
+});
+
+// ══════════════════════════════════════════════
+//  RANGE SLIDERS
+// ══════════════════════════════════════════════
+function bindRange(id, valId, fmt) {
+  const el = document.getElementById(id);
+  const val = document.getElementById(valId);
+  if (!el) return;
+  val.textContent = fmt(el.value);
+  el.addEventListener('input', () => { val.textContent = fmt(el.value); scheduleLivePreview(); });
+}
+bindRange('titleSize','titleSizeVal', v => v+'px');
+bindRange('bodySize','bodySizeVal', v => v+'px');
+bindRange('letterSpacing','letterSpacingVal', v => (v/100).toFixed(2)+'em');
+bindRange('pagePad','pagePadVal', v => v+'px');
+bindRange('borderRadius','borderRadiusVal', v => v+'px');
+
+// Other controls
+['titleFont','bodyFont','cardStyle','layoutWidth','inputStyle','btnShape',
+ 'brandName','tagline','logoIcon','btnLabel','btnSize',
+ 'showQR','showCopy','showOpen','showHistory','showValidation','showCharCount','showThemeToggle','showFooter',
+ 'footerText','fxAnimBg','fxScanlines','fxGlowInputs','fxFloatLabels','fxGrid','fxParticles','fxFadeIn','fxConfetti',
+ 'pageTitleInput'
+].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', scheduleLivePreview);
+  if (el && (el.tagName === 'INPUT' && el.type === 'text')) el.addEventListener('input', scheduleLivePreview);
+});
+
+// ══════════════════════════════════════════════
+//  GENERATE LINK
+// ══════════════════════════════════════════════
+function doGenerate() {
+  const link = buildLink();
+  if (!link) { toast('Enter a URL template first!'); return; }
+  const allFilled = currentVars.every(v => fieldValues[v]);
+  if (currentVars.length && !allFilled) { toast('Fill all variable fields!'); return; }
+  generatedLink = link;
+
+  const out = document.getElementById('outputLink');
+  let html = esc(link);
+  currentVars.forEach(v => {
+    if (fieldValues[v]) html = html.split(esc(fieldValues[v])).join(`<span class="hl">${esc(fieldValues[v])}</span>`);
+  });
+  out.innerHTML = html + '<div class="copy-overlay">Click to copy</div>';
+  out.className = 'output-link has-value';
+  out.onclick = () => copyText(generatedLink);
+
+  document.getElementById('openLinkBtn').style.display = '';
+  document.getElementById('qrBtn').style.display = '';
+  copyText(generatedLink);
+  addToHistory(generatedLink);
+
+  // Confetti
+  if (document.getElementById('fxConfetti').checked) spawnConfetti();
+}
+
+document.getElementById('generateLinkBtn').addEventListener('click', doGenerate);
+document.getElementById('generateLinkBtn2').addEventListener('click', doGenerate);
+document.getElementById('openLinkBtn').addEventListener('click', () => { if (generatedLink) window.open(generatedLink, '_blank'); });
+document.getElementById('copyLinkBtn').addEventListener('click', () => { if (generatedLink) copyText(generatedLink); });
+
+// ══════════════════════════════════════════════
+//  QR CODE (simple canvas impl)
+// ══════════════════════════════════════════════
+document.getElementById('qrBtn').addEventListener('click', () => {
+  if (!generatedLink) return;
+  const section = document.getElementById('qrSection');
+  section.style.display = '';
+  drawSimpleQR(generatedLink);
+});
+document.getElementById('closeQrBtn').addEventListener('click', () => {
+  document.getElementById('qrSection').style.display = 'none';
+});
+
+function drawSimpleQR(text) {
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d');
+  // Use QR API
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(text);
+  img.onload = () => { ctx.clearRect(0,0,200,200); ctx.drawImage(img,0,0,200,200); };
+  img.onerror = () => {
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,200,200);
+    ctx.fillStyle = '#000'; ctx.font='12px monospace';
+    ctx.fillText('QR: ' + text.substring(0,20), 10, 100);
+  };
+}
+
+// ══════════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════════
+function spawnConfetti() {
+  const colors = ['#c8ff57','#57c8ff','#ff57a8','#ffd657','#ff5757'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.style.cssText = `position:fixed;top:0;left:${Math.random()*100}vw;width:8px;height:8px;border-radius:${Math.random()>0.5?'50%':'2px'};background:${colors[Math.floor(Math.random()*colors.length)]};z-index:9999;pointer-events:none;animation:fall ${0.8+Math.random()*1.2}s linear forwards;`;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 2000);
+    }, i * 30);
+  }
+  if (!document.getElementById('confettiStyle')) {
+    const s = document.createElement('style');
+    s.id = 'confettiStyle';
+    s.textContent = '@keyframes fall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(100vh) rotate(720deg);opacity:0}}';
+    document.head.appendChild(s);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════
+function addToHistory(link) {
+  linkHistory = [link, ...linkHistory.filter(l => l !== link)].slice(0, 15);
+  localStorage.setItem('lgp_history', JSON.stringify(linkHistory));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  if (!linkHistory.length) { list.innerHTML = '<div class="empty">No history yet.</div>'; return; }
+  linkHistory.forEach(link => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `<span style="flex:1;">${esc(link)}</span><span class="history-copy" title="Copy">⎘</span>`;
+    item.querySelector('.history-copy').addEventListener('click', () => copyText(link));
+    item.addEventListener('click', e => { if (!e.target.classList.contains('history-copy')) {
+      templateInput.value = link; templateInput.dispatchEvent(new Event('input'));
+    }});
+    list.appendChild(item);
+  });
+}
+
+document.getElementById('clearHistBtn').addEventListener('click', () => {
+  linkHistory = []; localStorage.removeItem('lgp_history'); renderHistory();
+});
+
+// ══════════════════════════════════════════════
+//  SAVED TEMPLATES
+// ══════════════════════════════════════════════
+document.getElementById('saveTplBtn').addEventListener('click', () => {
+  const name = document.getElementById('saveName').value.trim();
+  const tpl = templateInput.value.trim();
+  if (!name) { toast('Enter a name!'); return; }
+  if (!tpl) { toast('Enter a template!'); return; }
+  savedTemplates = savedTemplates.filter(t => t.name !== name);
+  savedTemplates.unshift({ name, tpl });
+  localStorage.setItem('lgp_templates', JSON.stringify(savedTemplates));
+  document.getElementById('saveName').value = '';
+  renderSaved();
+  toast('Saved!', 'accent');
+});
+
+document.getElementById('clearAllSavedBtn').addEventListener('click', () => {
+  savedTemplates = []; localStorage.removeItem('lgp_templates'); renderSaved();
+});
+
+function renderSaved() {
+  const list = document.getElementById('savedList');
+  list.innerHTML = '';
+  if (!savedTemplates.length) { list.innerHTML = '<div class="empty">No saved templates.</div>'; return; }
+  savedTemplates.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML = `<div style="flex:1;min-width:0;"><div class="saved-name">${esc(t.name)}</div><div class="saved-tpl">${esc(t.tpl)}</div></div>
+      <span class="saved-del" data-i="${i}">×</span>`;
+    item.addEventListener('click', e => {
+      if (e.target.classList.contains('saved-del')) return;
+      templateInput.value = t.tpl; templateInput.dispatchEvent(new Event('input'));
+    });
+    item.querySelector('.saved-del').addEventListener('click', e => {
+      e.stopPropagation(); savedTemplates.splice(i,1);
+      localStorage.setItem('lgp_templates', JSON.stringify(savedTemplates)); renderSaved();
+    });
+    list.appendChild(item);
+  });
+}
+
+document.getElementById('clearTplBtn').addEventListener('click', () => {
+  templateInput.value = ''; templateInput.dispatchEvent(new Event('input'));
+});
+
+// ══════════════════════════════════════════════
+//  DOWNLOAD HTML
+// ══════════════════════════════════════════════
+function downloadHtml() {
+  const html = buildOutputHtml(false);
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById('pageTitleInput').value || 'linkgen') + '.html';
+  a.click();
+  toast('HTML downloaded!', 'accent');
+}
+
+document.getElementById('downloadHtmlBtn').addEventListener('click', downloadHtml);
+document.getElementById('downloadHtmlBtn2').addEventListener('click', downloadHtml);
+
+// ══════════════════════════════════════════════
+//  HTML BUILDER
+// ══════════════════════════════════════════════
+function getConfig() {
+  const g = id => document.getElementById(id);
+  const gv = id => g(id)?.value || '';
+  const gc = id => g(id)?.checked;
+  return {
+    bg: gv('bgColor') || '#0a0a0c',
+    accent: gv('accentColor') || '#c8ff57',
+    textCol: gv('textColor') || '#f0f0f0',
+    surf: gv('surfColor') || '#111115',
+    btnText: gv('btnTextColor') || '#000000',
+    titleFont: gv('titleFont') || "'DM Sans', sans-serif",
+    bodyFont: gv('bodyFont') || "'DM Sans', sans-serif",
+    titleSize: gv('titleSize') || '52',
+    bodySize: gv('bodySize') || '16',
+    letterSpacing: ((gv('letterSpacing') || '2') / 100).toFixed(2),
+    cardStyle: gv('cardStyle') || 'modern',
+    layoutWidth: gv('layoutWidth') || '640px',
+    pagePad: gv('pagePad') || '40',
+    borderRadius: gv('borderRadius') || '14',
+    inputStyle: gv('inputStyle') || 'filled',
+    btnShape: gv('btnShape') || 'rounded',
+    brandName: gv('brandName') || 'LinkGen Pro',
+    tagline: gv('tagline') || 'Generate links instantly',
+    logoIcon: gv('logoIcon') || '⚡',
+    btnLabel: gv('btnLabel') || 'Generate Link',
+    btnSize: gv('btnSize') || 'medium',
+    pageTitle: gv('pageTitleInput') || 'LinkGen',
+    showQR: gc('showQR'),
+    showCopy: gc('showCopy'),
+    showOpen: gc('showOpen'),
+    showHistory: gc('showHistory'),
+    showValidation: gc('showValidation'),
+    showCharCount: gc('showCharCount'),
+    showThemeToggle: gc('showThemeToggle'),
+    showFooter: gc('showFooter'),
+    footerText: gv('footerText'),
+    fxAnimBg: gc('fxAnimBg'),
+    fxScanlines: gc('fxScanlines'),
+    fxGlowInputs: gc('fxGlowInputs'),
+    fxFloatLabels: gc('fxFloatLabels'),
+    fxGrid: gc('fxGrid'),
+    fxParticles: gc('fxParticles'),
+    fxFadeIn: gc('fxFadeIn'),
+    fxConfetti: gc('fxConfetti'),
+    template: templateInput.value.trim(),
+    vars: currentVars,
+  };
+}
+
+function buildOutputHtml(isPreview) {
+  const c = getConfig();
+  const vars = c.vars;
+
+  const btnRadius = c.btnShape === 'pill' ? '99px' : c.btnShape === 'sharp' ? '0' : (c.borderRadius + 'px');
+  const btnPad = c.btnSize === 'small' ? '10px 20px' : c.btnSize === 'large' ? '16px 36px' : c.btnSize === 'xl' ? '18px 0' : '13px 28px';
+  const btnFontSize = c.btnSize === 'small' ? '12px' : c.btnSize === 'large' ? '15px' : c.btnSize === 'xl' ? '15px' : '13px';
+
+  const inputBg = c.inputStyle === 'outline' ? 'transparent' : c.inputStyle === 'underline' ? 'transparent' : 'rgba(255,255,255,0.06)';
+  const inputBorder = c.inputStyle === 'outline' ? `1px solid rgba(255,255,255,0.2)` : c.inputStyle === 'underline' ? `none; border-bottom:1px solid rgba(255,255,255,0.2); border-radius:0` : `1px solid rgba(255,255,255,0.1)`;
+  const inputBorderRadius = c.inputStyle === 'underline' ? '0' : (c.borderRadius + 'px');
+
+  const glassExtra = c.cardStyle === 'glass' ? 'backdrop-filter:blur(20px);background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);' : '';
+  const brutalExtra = c.cardStyle === 'brutal' ? `border:2px solid ${c.accent};border-radius:0;` : '';
+  const cardRadius = c.cardStyle === 'sharp' ? '0' : c.cardStyle === 'brutal' ? '0' : (c.borderRadius + 'px');
+  const pillRadius = c.cardStyle === 'pill' ? '99px' : cardRadius;
+
+  const animBgCSS = c.fxAnimBg ? `
+    @keyframes bgShift {
+      0%,100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    body { background: linear-gradient(135deg, ${c.bg}, ${c.bg}dd, ${c.surf}cc) !important; background-size: 400% 400% !important; animation: bgShift 12s ease infinite; }
+  ` : '';
+
+  const scanlinesCSS = c.fxScanlines ? `
+    body::before { content:''; position:fixed; inset:0; background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px); pointer-events:none; z-index:9999; }
+  ` : '';
+
+  const glowInputCSS = c.fxGlowInputs ? `
+    input:focus, textarea:focus { box-shadow: 0 0 0 3px ${c.accent}22, 0 0 15px ${c.accent}15 !important; }
+  ` : '';
+
+  const gridCSS = c.fxGrid ? `
+    .grid-deco { position:fixed; top:0; right:0; width:300px; height:300px; opacity:0.04; background-image:linear-gradient(${c.accent} 1px,transparent 1px),linear-gradient(90deg,${c.accent} 1px,transparent 1px); background-size:30px 30px; pointer-events:none; }
+  ` : '';
+
+  const fadeCSS = c.fxFadeIn ? `
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .wrap { animation: fadeUp 0.6s ease both; }
+  ` : '';
+
+  const particlesCSS = c.fxParticles ? `
+    .particle { position:fixed; pointer-events:none; border-radius:50%; animation:floatUp linear infinite; }
+    @keyframes floatUp { from { transform:translateY(100vh) scale(1); opacity:0.6; } to { transform:translateY(-100px) scale(0.5); opacity:0; } }
+  ` : '';
+
+  const confettiJS = c.fxConfetti ? `
+    function spawnConfetti() {
+      const colors = ['${c.accent}','#57c8ff','#ff57a8','#ffd657'];
+      for(let i=0;i<60;i++) setTimeout(()=>{
+        const p=document.createElement('div');
+        p.style.cssText='position:fixed;top:0;left:'+Math.random()*100+'vw;width:8px;height:8px;border-radius:'+(Math.random()>.5?'50%':'2px')+';background:'+colors[Math.floor(Math.random()*colors.length)]+';z-index:9999;pointer-events:none;animation:fall '+(0.8+Math.random()*1.2)+'s linear forwards';
+        document.body.appendChild(p);setTimeout(()=>p.remove(),2000);
+      },i*25);
+    }
+    const style=document.createElement('style');
+    style.textContent='@keyframes fall{from{transform:translateY(-20px) rotate(0);opacity:1}to{transform:translateY(100vh) rotate(720deg);opacity:0}}';
+    document.head.appendChild(style);
+  ` : '';
+
+  const themeToggleHTML = c.showThemeToggle ? `
+    <button id="themeBtn" onclick="toggleTheme()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;width:40px;height:40px;color:${c.textCol};font-size:16px;cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center;">☀</button>
+    <script>
+      let dark=true;
+      function toggleTheme(){
+        dark=!dark;
+        document.body.style.background=dark?'${c.bg}':'#f8f8f8';
+        document.body.style.color=dark?'${c.textCol}':'#111';
+        document.getElementById('themeBtn').textContent=dark?'☀':'🌙';
+      }
+    <\/script>
+  ` : '';
+
+  const historyHTML = c.showHistory ? `
+    <div id="histSection" style="display:none;">
+      <div style="font-size:10px;font-family:monospace;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Recent Links</div>
+      <div id="histList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <button onclick="clearHist()" style="margin-top:8px;background:transparent;border:none;color:rgba(255,255,255,0.3);font-size:11px;cursor:pointer;font-family:monospace;">Clear history</button>
+    </div>
+  ` : '';
+
+  const charCountHTML = c.showCharCount ? `<div id="charCount" style="text-align:right;font-size:10px;font-family:monospace;color:rgba(255,255,255,0.3);margin-top:4px;"></div>` : '';
+  const charCountJS = c.showCharCount ? `document.querySelectorAll('.vi').forEach(i=>i.addEventListener('input',updateCharCounts)); function updateCharCounts(){document.querySelectorAll('.vi').forEach(i=>{const next=i.nextElementSibling;if(next&&next.id==='charCount')next.textContent=i.value.length+' chars';});}` : '';
+
+  const validationJS = c.showValidation ? `
+    function validateUrl(url) {
+      try { new URL(url); return true; } catch { return false; }
+    }
+    function showValidation(valid, url) {
+      let vEl = document.getElementById('validMsg');
+      if(!vEl){vEl=document.createElement('div');vEl.id='validMsg';vEl.style.cssText='font-size:11px;font-family:monospace;margin-top:6px;padding:6px 10px;border-radius:6px;';document.getElementById('result').after(vEl);}
+      if(!url){vEl.style.display='none';return;}
+      vEl.style.display='';
+      if(valid){vEl.style.background='rgba(79,255,154,0.1)';vEl.style.color='#4fff9a';vEl.textContent='✓ Valid URL';}
+      else{vEl.style.background='rgba(255,79,79,0.1)';vEl.style.color='#ff4f4f';vEl.textContent='⚠ URL may be invalid';}
+    }
+  ` : '';
+
+  const particlesJS = c.fxParticles ? `
+    (function(){
+      const colors=['${c.accent}33','${c.accent}22'];
+      for(let i=0;i<15;i++){
+        const p=document.createElement('div');
+        p.className='particle';
+        const size=Math.random()*6+3;
+        p.style.cssText='width:'+size+'px;height:'+size+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';left:'+Math.random()*100+'vw;animation-duration:'+(8+Math.random()*12)+'s;animation-delay:'+(Math.random()*10)+'s;';
+        document.body.appendChild(p);
+      }
+    })();
+  ` : '';
+
+  const fieldsHtml = vars.map(v => `
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11px;font-family:monospace;color:${c.accent};text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">{${v}}</label>
+      <input class="vi" type="text" data-var="${v}" placeholder="Enter ${v}…"
+        style="width:100%;background:${inputBg};border:${inputBorder};border-radius:${pillRadius};color:${c.textCol};font-family:monospace;font-size:13px;padding:11px 14px;outline:none;transition:border-color 0.2s;box-sizing:border-box;" />
+      ${charCountHTML}
+    </div>
+  `).join('');
+
+  const qrHTML = c.showQR ? `
+    <div id="qrWrap" style="display:none;margin-top:16px;text-align:center;">
+      <img id="qrImg" src="" alt="QR Code" style="width:160px;height:160px;border-radius:10px;background:#fff;padding:8px;" />
+    </div>
+  ` : '';
+
+  const qrJS = c.showQR ? `
+    function showQR(url){
+      const wrap=document.getElementById('qrWrap');
+      const img=document.getElementById('qrImg');
+      if(wrap&&img){img.src='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(url);wrap.style.display='';}
+    }
+  ` : 'function showQR(){}';
+
+  const copyBtnHTML = c.showCopy ? `<button onclick="doCopy()" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:${btnRadius};color:${c.textCol};font-family:monospace;font-size:12px;padding:10px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">⎘ Copy</button>` : '';
+  const openBtnHTML = c.showOpen ? `<button id="openBtn" onclick="doOpen()" style="display:none;flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:${btnRadius};color:${c.textCol};font-family:monospace;font-size:12px;padding:10px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">↗ Open</button>` : '';
+  const qrBtnHTML = c.showQR ? `<button id="qrBtnEl" onclick="showQR(lastLink)" style="display:none;flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:${btnRadius};color:${c.textCol};font-family:monospace;font-size:12px;padding:10px;cursor:pointer;">⊞ QR</button>` : '';
+
+  const histJS = c.showHistory ? `
+    let hist=JSON.parse(localStorage.getItem('lgh')||'[]');
+    function addHist(l){hist=[l,...hist.filter(x=>x!==l)].slice(0,10);localStorage.setItem('lgh',JSON.stringify(hist));renderHist();}
+    function clearHist(){hist=[];localStorage.removeItem('lgh');renderHist();}
+    function renderHist(){
+      const s=document.getElementById('histSection');
+      const hl=document.getElementById('histList');
+      if(!s||!hl)return;
+      if(!hist.length){s.style.display='none';return;}
+      s.style.display='';hl.innerHTML='';
+      hist.forEach(l=>{
+        const d=document.createElement('div');
+        d.style.cssText='padding:8px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-family:monospace;font-size:10px;word-break:break-all;cursor:pointer;color:rgba(255,255,255,0.6);';
+        d.textContent=l;d.onclick=()=>{navigator.clipboard.writeText(l).catch(()=>{});};
+        hl.appendChild(d);
+      });
+    }
+    renderHist();
+  ` : 'function addHist(){}';
+
+  const footerHTML = c.showFooter ? `<div style="text-align:center;padding:30px 0 0;font-size:11px;font-family:monospace;color:rgba(255,255,255,0.2);">${esc(c.footerText || 'Made with LinkGen Pro')}</div>` : '';
+
+  const logoIconHTML = c.logoIcon !== 'none' ? `<span style="margin-right:10px;font-size:0.8em;">${c.logoIcon}</span>` : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${esc(c.pageTitle)}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: ${c.bg};
+  color: ${c.textCol};
+  font-family: ${c.bodyFont};
+  font-size: ${c.bodySize}px;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: ${c.pagePad}px 20px;
+}
+.wrap {
+  width: 100%;
+  max-width: ${c.layoutWidth};
+}
+.title {
+  font-family: ${c.titleFont};
+  font-size: ${c.titleSize}px;
+  letter-spacing: ${c.letterSpacing}em;
+  color: ${c.textCol};
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.title span { color: ${c.accent}; }
+.tagline {
+  font-size: 13px;
+  color: rgba(${hexToRgb(c.textCol)},0.5);
+  margin-bottom: 28px;
+  font-family: monospace;
+}
+.card {
+  background: ${c.surf};
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: ${cardRadius};
+  padding: 24px;
+  margin-bottom: 16px;
+  ${glassExtra}
+  ${brutalExtra}
+}
+.card-label {
+  font-family: monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(${hexToRgb(c.textCol)},0.35);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-label::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.06); }
+input[type=text] {
+  width: 100%;
+  background: ${inputBg};
+  border: ${inputBorder};
+  border-radius: ${inputBorderRadius};
+  color: ${c.textCol};
+  font-family: monospace;
+  font-size: 13px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 0;
+}
+input[type=text]:focus { border-color: ${c.accent}66; }
+.gen-btn {
+  width: ${c.btnSize === 'xl' ? '100%' : 'auto'};
+  background: ${c.accent};
+  color: ${c.btnText};
+  border: none;
+  border-radius: ${btnRadius};
+  padding: ${btnPad};
+  font-size: ${btnFontSize};
+  font-weight: 700;
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: ${c.btnSize === 'xl' ? 'block' : 'inline-block'};
+}
+.gen-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px ${c.accent}44; filter:brightness(1.05); }
+.gen-btn:active { transform:translateY(0); }
+#result {
+  padding: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: ${cardRadius};
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+  color: rgba(${hexToRgb(c.textCol)},0.5);
+  min-height: 46px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 10px;
+}
+#result:hover { background: rgba(255,255,255,0.05); }
+#result.has-val { color: ${c.textCol}; }
+#result .hl { color: ${c.accent}; }
+.action-row { display:flex; gap:8px; flex-wrap:wrap; }
+.grid-deco { position:fixed; top:0; right:0; width:300px; height:300px; opacity:0.04; background-image:linear-gradient(${c.accent} 1px,transparent 1px),linear-gradient(90deg,${c.accent} 1px,transparent 1px); background-size:30px 30px; pointer-events:none; }
+${animBgCSS}
+${scanlinesCSS}
+${glowInputCSS}
+${gridCSS}
+${fadeCSS}
+${particlesCSS}
+@media(max-width:480px){.wrap{padding:0;}.card{padding:16px;border-radius:0;border-left:none;border-right:none;}}
+</style>
+</head>
+<body>
+
+${c.fxGrid ? '<div class="grid-deco"></div>' : ''}
+
+<div class="wrap">
+  <div style="margin-bottom:32px;">
+    <h1 class="title">${logoIconHTML}${esc(c.brandName).replace(/(\w+)$/, '<span>$1</span>')}</h1>
+    <div class="tagline">${esc(c.tagline)}</div>
+  </div>
+
+  ${vars.length > 0 ? `
+  <div class="card">
+    <div class="card-label">Variables</div>
+    ${fieldsHtml}
+  </div>
+  ` : `
+  <div class="card">
+    <div class="card-label">Template</div>
+    <p style="font-family:monospace;font-size:12px;color:rgba(255,255,255,0.4);">${esc(c.template) || 'No template set.'}</p>
+  </div>
+  `}
+
+  <div class="card">
+    <div class="card-label">Generate</div>
+    <button class="gen-btn" onclick="doGenerate()">${esc(c.btnLabel)}</button>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Result</div>
+    <div id="result" onclick="doCopy()">Fill the fields and click Generate.</div>
+    <div class="action-row">
+      ${copyBtnHTML}
+      ${openBtnHTML}
+      ${qrBtnHTML}
+    </div>
+    ${qrHTML}
+  </div>
+
+  ${historyHTML}
+  ${footerHTML}
+</div>
+
+${themeToggleHTML}
+
+<script>
+const TEMPLATE = ${JSON.stringify(c.template)};
+const VARS = ${JSON.stringify(vars)};
+let lastLink = '';
+
+${confettiJS}
+${qrJS}
+${histJS}
+${validationJS}
+${charCountJS}
+${particlesJS}
+
+function buildLink() {
+  let t = TEMPLATE;
+  VARS.forEach(v => {
+    const inp = document.querySelector('[data-var="'+v+'"]');
+    const val = inp ? inp.value : '';
+    t = t.split('{'+v+'}').join(val || ('{'+v+'}'));
+  });
+  return t;
+}
+
+function doGenerate() {
+  const link = buildLink();
+  const allFilled = VARS.every(v => document.querySelector('[data-var="'+v+'"]')?.value);
+  const result = document.getElementById('result');
+  if (!link) return;
+  if (VARS.length && !allFilled) { result.innerHTML='<span style="color:#ff4f4f;">⚠ Fill all fields first!</span>'; return; }
+  lastLink = link;
+  let html = link.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  VARS.forEach(v => {
+    const val = document.querySelector('[data-var="'+v+'"]')?.value || '';
+    if(val) html = html.split(val.replace(/&/g,'&amp;')).join('<span class="hl">'+val+'</span>');
+  });
+  result.innerHTML = html;
+  result.className = 'has-val';
+  const openBtn = document.getElementById('openBtn');
+  if(openBtn) openBtn.style.display = '';
+  const qrBtnEl = document.getElementById('qrBtnEl');
+  if(qrBtnEl) qrBtnEl.style.display = '';
+  ${c.showValidation ? 'showValidation(validateUrl(link), link);' : ''}
+  ${c.fxConfetti ? 'spawnConfetti();' : ''}
+  addHist(link);
+}
+
+function doCopy() {
+  if(!lastLink) return;
+  navigator.clipboard.writeText(lastLink).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=lastLink;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  });
+  const r=document.getElementById('result');
+  const orig=r.innerHTML;
+  r.innerHTML='<span style="color:${c.accent};">✓ Copied!</span>';
+  setTimeout(()=>r.innerHTML=orig,1200);
+}
+
+function doOpen() { if(lastLink) window.open(lastLink,'_blank'); }
+
+document.querySelectorAll('.vi').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') doGenerate(); }));
+<\/script>
+</body>
+</html>`;
+}
+
+function hexToRgb(hex) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : '255,255,255';
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+if (savedTemplates.length === 0) {
+  savedTemplates = [
+    { name: 'CDN Page', tpl: 'https://d2f9lckj2oznig.cloudfront.net/{code}/index.html' },
+    { name: 'API v{version}', tpl: 'https://api.example.com/v{version}/{resource}/{id}' },
+    { name: 'S3 Asset', tpl: 'https://mybucket.s3.amazonaws.com/{folder}/{filename}.{ext}' },
+  ];
+  localStorage.setItem('lgp_templates', JSON.stringify(savedTemplates));
+}
+
+renderSaved();
+renderHistory();
+updateLivePreview();
+
+// Seed colors
+['bgColor','accentColor','textColor','surfColor','btnTextColor'].forEach(id => {
+  const el = document.getElementById(id);
+  const prevId = id.replace('Color','') + 'Preview';
+  const prev = document.getElementById(prevId.charAt(0).toUpperCase() + prevId.slice(1)) ||
+               document.getElementById(prevId);
+  // already synced via syncColor()
+});
+</script>
+</body>
+</html>
