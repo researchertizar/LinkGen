@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinkGen Pro — Webpage Builder</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- ══════════════════ SIDEBAR ══════════════════ -->
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+                <div class="logo-tag">// Webpage Builder</div>
+                <div class="logo-title">Link<span>Gen</span></div>
+                <div class="logo-sub">PRO v2.0 — Full Visual Builder</div>
+            </div>
+
+            <!-- NAV TABS -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-panel="template">URL</button>
+                <button class="nav-tab" data-panel="design">Design</button>
+                <button class="nav-tab" data-panel="content">Content</button>
+                <button class="nav-tab" data-panel="saved">Saved</button>
+            </nav>
+
+            <!-- ── PANEL: URL TEMPLATE ── -->
+            <div class="panel active" id="panel-template">
+                <div class="panel-scroll">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> URL Template</div>
+                            <button class="btn btn-ghost btn-sm" id="clearTplBtn">Clear</button>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="templateInput" rows="3" placeholder="https://example.com/{id}/index.html&#10;&#10;Use {variable} for dynamic parts"></textarea>
+                            <div class="hint" style="font-family:var(--mono);font-size:11px;color:var(--muted);">
+                                Wrap variables with <code style="color:var(--accent);background:var(--accent-dim2);padding:1px 5px;border-radius:4px;">{curly braces}</code>
+                            </div>
+                            <div class="var-pills" id="varPills"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> Fill Variables</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="field-list" id="fieldList">
+                                <div class="empty">No variables detected yet.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> Page Title</div>
+                        </div>
+                        <div class="card-body">
+                            <input type="text" id="pageTitleInput" placeholder="My Webpage" />
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> Save Template</div>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" id="saveName" placeholder="Template name…" style="flex:1;" />
+                                <button class="btn btn-ghost btn-sm" id="saveTplBtn">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── PANEL: DESIGN ── -->
+            <div class="panel" id="panel-design">
+                <div class="tab-btn-group">
+                    <button class="tab-btn active" data-sub="colors">Colors</button>
+                    <button class="tab-btn" data-sub="typo">Type</button>
+                    <button class="tab-btn" data-sub="layout">Layout</button>
+                    <button class="tab-btn" data-sub="fx">FX</button>
+                </div>
+                <div class="panel-scroll" style="padding-top:0;">
+
+                    <!-- Colors sub-panel -->
+                    <div class="sub-panel active" id="sub-colors">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><span class="dot"></span> Color Scheme</div></div>
+                            <div class="card-body">
+                                <div class="input-group">
+                                    <label>Preset</label>
+                                    <select id="colorPreset">
+                                        <option value="custom">Custom</option>
+                                        <option value="dark-neon">Dark Neon</option>
+                                        <option value="midnight">Midnight Blue</option>
+                                        <option value="light">Clean Light</option>
+                                        <option value="warm">Warm Cream</option>
+                                        <option value="crimson">Crimson Dark</option>
+                                        <option value="forest">Forest Green</option>
+                                        <option value="cyberpunk">Cyberpunk</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Background</label>
+                                    <div class="color-row">
+                                        <div class="color-swatch">
+                                            <div class="color-swatch-preview" id="bgPreview"></div>
+                                            <input type="color" id="bgColor" value="#0a0a0c" />
+                                        </div>
+                                        <input type="text" id="bgColorText" class="color-text" value="#0a0a0c" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Accent Color</label>
+                                    <div class="color-row">
+                                        <div class="color-swatch">
+                                            <div class="color-swatch-preview" id="accentPreview"></div>
+                                            <input type="color" id="accentColor" value="#c8ff57" />
+                                        </div>
+                                        <input type="text" id="accentColorText" class="color-text" value="#c8ff57" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Text Color</label>
+                                    <div class="color-row">
+                                        <div class="color-swatch">
+                                            <div class="color-swatch-preview" id="textPreview"></div>
+                                            <input type="color" id="textColor" value="#f0f0f0" />
+                                        </div>
+                                        <input type="text" id="textColorText" class="color-text" value="#f0f0f0" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Card / Surface</label>
+                                    <div class="color-row">
+                                        <div class="color-swatch">
+                                            <div class="color-swatch-preview" id="surfPreview"></div>
+                                            <input type="color" id="surfColor" value="#111115" />
+                                        </div>
+                                        <input type="text" id="surfColorText" class="color-text" value="#111115" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Button Text</label>
+                                    <div class="color-row">
+                                        <div class="color-swatch">
+                                            <div class="color-swatch-preview" id="btnTextPreview"></div>
+                                            <input type="color" id="btnTextColor" value="#000000" />
+                                        </div>
+                                        <input type="text" id="btnTextColorText" class="color-text" value="#000000" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Typography sub-panel -->
+                    <div class="sub-panel" id="sub-typo">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><span class="dot"></span> Typography</div></div>
+                            <div class="card-body">
+                                <div class="input-group">
+                                    <label>Title Font</label>
+                                    <select id="titleFont">
+                                        <option value="'Bebas Neue', sans-serif">Bebas Neue (Display)</option>
+                                        <option value="'Space Mono', monospace">Space Mono</option>
+                                        <option value="'DM Sans', sans-serif" selected>DM Sans</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                        <option value="Impact, sans-serif">Impact</option>
+                                        <option value="'Arial Black', sans-serif">Arial Black</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Body Font</label>
+                                    <select id="bodyFont">
+                                        <option value="'DM Sans', sans-serif" selected>DM Sans</option>
+                                        <option value="'Space Mono', monospace">Space Mono</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="Arial, sans-serif">Arial</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Title Size</label>
+                                    <div class="range-row">
+                                        <input type="range" id="titleSize" min="24" max="96" value="52" style="flex:1;" />
+                                        <span class="range-val" id="titleSizeVal">52px</span>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Body Size</label>
+                                    <div class="range-row">
+                                        <input type="range" id="bodySize" min="12" max="24" value="16" style="flex:1;" />
+                                        <span class="range-val" id="bodySizeVal">16px</span>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Letter Spacing</label>
+                                    <div class="range-row">
+                                        <input type="range" id="letterSpacing" min="0" max="20" value="2" style="flex:1;" />
+                                        <span class="range-val" id="letterSpacingVal">0.02em</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout sub-panel -->
+                    <div class="sub-panel" id="sub-layout">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><span class="dot"></span> Layout</div></div>
+                            <div class="card-body">
+                                <div class="input-group">
+                                    <label>Card Style</label>
+                                    <select id="cardStyle">
+                                        <option value="modern">Modern Rounded</option>
+                                        <option value="sharp">Sharp Edges</option>
+                                        <option value="pill">Pill Inputs</option>
+                                        <option value="brutal">Brutal Borders</option>
+                                        <option value="glass">Glassmorphism</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Layout Width</label>
+                                    <select id="layoutWidth">
+                                        <option value="480px">Narrow (480px)</option>
+                                        <option value="640px" selected>Normal (640px)</option>
+                                        <option value="800px">Wide (800px)</option>
+                                        <option value="100%">Full Width</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Padding</label>
+                                    <div class="range-row">
+                                        <input type="range" id="pagePad" min="16" max="80" value="40" style="flex:1;" />
+                                        <span class="range-val" id="pagePadVal">40px</span>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Border Radius</label>
+                                    <div class="range-row">
+                                        <input type="range" id="borderRadius" min="0" max="30" value="14" style="flex:1;" />
+                                        <span class="range-val" id="borderRadiusVal">14px</span>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Input Style</label>
+                                    <select id="inputStyle">
+                                        <option value="filled">Filled</option>
+                                        <option value="outline">Outline Only</option>
+                                        <option value="underline">Underline</option>
+                                        <option value="glow">Glow Focus</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Button Shape</label>
+                                    <select id="btnShape">
+                                        <option value="rounded">Rounded</option>
+                                        <option value="pill">Pill</option>
+                                        <option value="sharp">Sharp</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FX sub-panel -->
+                    <div class="sub-panel" id="sub-fx">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><span class="dot"></span> Visual Effects</div></div>
+                            <div class="card-body">
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Animated Background</span>
+                                    <label class="toggle"><input type="checkbox" id="fxAnimBg" /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Scanlines</span>
+                                    <label class="toggle"><input type="checkbox" id="fxScanlines" /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Glow Inputs</span>
+                                    <label class="toggle"><input type="checkbox" id="fxGlowInputs" checked /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Floating Labels</span>
+                                    <label class="toggle"><input type="checkbox" id="fxFloatLabels" /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Grid Decoration</span>
+                                    <label class="toggle"><input type="checkbox" id="fxGrid" checked /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Particle Effect</span>
+                                    <label class="toggle"><input type="checkbox" id="fxParticles" /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Fade-in Animation</span>
+                                    <label class="toggle"><input type="checkbox" id="fxFadeIn" checked /><span class="toggle-track"></span></label>
+                                </div>
+                                <div class="toggle-row">
+                                    <span class="toggle-label">Confetti on Generate</span>
+                                    <label class="toggle"><input type="checkbox" id="fxConfetti" /><span class="toggle-track"></span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── PANEL: CONTENT ── -->
+            <div class="panel" id="panel-content">
+                <div class="panel-scroll">
+
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><span class="dot"></span> Page Header</div></div>
+                        <div class="card-body">
+                            <div class="input-group"><label>Brand / App Name</label><input type="text" id="brandName" placeholder="LinkGen Pro" value="LinkGen Pro" /></div>
+                            <div class="input-group"><label>Tagline</label><input type="text" id="tagline" placeholder="Generate links instantly" value="Generate links instantly" /></div>
+                            <div class="input-group"><label>Show Logo Icon</label>
+                                <select id="logoIcon">
+                                    <option value="⚡">⚡ Lightning</option>
+                                    <option value="🔗">🔗 Link</option>
+                                    <option value="🚀">🚀 Rocket</option>
+                                    <option value="✦">✦ Star</option>
+                                    <option value="◈">◈ Diamond</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><span class="dot"></span> Generate Button</div></div>
+                        <div class="card-body">
+                            <div class="input-group"><label>Button Label</label><input type="text" id="btnLabel" placeholder="Generate Link" value="Generate Link" /></div>
+                            <div class="input-group"><label>Button Size</label>
+                                <select id="btnSize">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                    <option value="xl">XL Full Width</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><span class="dot"></span> Extra Sections</div></div>
+                        <div class="card-body">
+                            <div class="toggle-row">
+                                <span class="toggle-label">Show QR Code</span>
+                                <label class="toggle"><input type="checkbox" id="showQR" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Copy to Clipboard Btn</span>
+                                <label class="toggle"><input type="checkbox" id="showCopy" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Open in New Tab Btn</span>
+                                <label class="toggle"><input type="checkbox" id="showOpen" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Link History</span>
+                                <label class="toggle"><input type="checkbox" id="showHistory" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">URL Validation</span>
+                                <label class="toggle"><input type="checkbox" id="showValidation" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Character Counter</span>
+                                <label class="toggle"><input type="checkbox" id="showCharCount" /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Dark/Light Toggle</span>
+                                <label class="toggle"><input type="checkbox" id="showThemeToggle" checked /><span class="toggle-track"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Footer Credits</span>
+                                <label class="toggle"><input type="checkbox" id="showFooter" /><span class="toggle-track"></span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><span class="dot"></span> Custom Footer</div></div>
+                        <div class="card-body">
+                            <div class="input-group"><label>Footer Text</label><input type="text" id="footerText" placeholder="Made with LinkGen Pro" /></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── PANEL: SAVED ── -->
+            <div class="panel" id="panel-saved">
+                <div class="panel-scroll">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> Saved Templates</div>
+                            <button class="btn btn-ghost btn-sm" id="clearAllSavedBtn">Clear All</button>
+                        </div>
+                        <div class="card-body" id="savedList">
+                            <div class="empty">No saved templates.</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="dot"></span> History</div>
+                            <button class="btn btn-ghost btn-sm" id="clearHistBtn">Clear</button>
+                        </div>
+                        <div class="card-body" id="historyList">
+                            <div class="empty">No link history.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ══════════════════ MAIN AREA ══════════════════ -->
+        <main class="main">
+
+            <div class="topbar">
+                <div class="topbar-left">
+                    <div class="mode-badge">Builder Mode</div>
+                    <div class="preview-label" id="previewLabel">Enter a URL template to get started →</div>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-ghost btn-sm" id="refreshPreviewBtn">↺ Refresh</button>
+                    <button class="btn btn-blue btn-sm" id="downloadHtmlBtn">⬇ Download HTML</button>
+                    <button class="btn btn-accent btn-sm" id="generateLinkBtn">Generate Link</button>
+                </div>
+            </div>
+
+            <div class="preview-area">
+
+                <!-- Live URL Preview -->
+                <div class="live-preview-wrap">
+                    <div class="preview-browser-bar">
+                        <div class="browser-dots">
+                            <div class="browser-dot"></div>
+                            <div class="browser-dot"></div>
+                            <div class="browser-dot"></div>
+                        </div>
+                        <div class="browser-url" id="browserUrl">about:blank</div>
+                    </div>
+                    <div class="preview-iframe-wrap">
+                        <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin" title="Live Preview"></iframe>
+                    </div>
+                </div>
+
+                <!-- Output -->
+                <div class="output-card">
+                    <div class="output-header">
+                        <div class="output-title">Generated Link</div>
+                        <button class="btn btn-ghost btn-sm" id="copyLinkBtn">Copy</button>
+                    </div>
+                    <div class="output-link" id="outputLink">
+                        <span style="color:var(--muted);font-size:12px;">Click Generate Link to build your URL.</span>
+                        <div class="copy-overlay">Click to copy</div>
+                    </div>
+                    <div class="output-actions">
+                        <button class="btn btn-accent btn-sm" id="generateLinkBtn2">⚡ Generate</button>
+                        <button class="btn btn-ghost btn-sm" id="openLinkBtn" style="display:none;">↗ Open</button>
+                        <button class="btn btn-ghost btn-sm" id="qrBtn" style="display:none;">QR Code</button>
+                        <button class="btn btn-blue btn-sm" id="downloadHtmlBtn2">⬇ Download Page</button>
+                    </div>
+                </div>
+
+                <!-- QR Code display -->
+                <div id="qrSection" style="display:none;">
+                    <div class="output-card">
+                        <div class="output-header">
+                            <div class="output-title">QR Code</div>
+                            <button class="btn btn-ghost btn-sm" id="closeQrBtn">✕ Close</button>
+                        </div>
+                        <div style="padding:20px;text-align:center;">
+                            <canvas id="qrCanvas" width="200" height="200" style="border-radius:8px;background:#fff;padding:10px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
